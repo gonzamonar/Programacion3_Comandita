@@ -46,7 +46,6 @@ class Mesa
     public static function fetchAllMesas($onlyActives = true)
     {
         $sql = "SELECT * FROM mesas" . (($onlyActives) ? " WHERE estado = 'activo';" : ";") ;
-        //$sql = "SELECT * FROM mesas;";
         $objAccesoDatos = AccesoDB::getInstance();
         $consulta = $objAccesoDatos->prepareQuery($sql);
         $consulta->execute();
