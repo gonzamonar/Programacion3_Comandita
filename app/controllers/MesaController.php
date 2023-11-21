@@ -1,9 +1,11 @@
 <?php
 require_once './models/Mesa.php';
 require_once './interfaces/IABM.php';
+require_once './controllers/ControllerTrait.php';
 
 class MesaController extends Mesa implements IABM
 {
+    use ControllerTrait;
 
 //ABM
     public function CreateOne($request, $response, $args)
@@ -18,8 +20,9 @@ class MesaController extends Mesa implements IABM
             } while (Mesa::idExists($codigo));
             $mesa->codigo = $codigo;
         }
-        $mesa->create();
-        return self::StandardResponse($response, self::EncodePayload("mensaje", "Mesa creada con exito"));
+        $id_mesa = $mesa->create();
+        $payload = self::EncodePayload("mensaje", "Mesa $id_mesa ($mesa->codigo) creada con exito");
+        return self::StandardResponse($response, $payload);
     }
 
     public function UpdateOne($request, $response, $args)
@@ -48,43 +51,33 @@ class MesaController extends Mesa implements IABM
         
         $mesa->update();
 
-        return self::StandardResponse($response, self::EncodePayload("mensaje", "Mesa modificado con exito"));
+        $payload = self::EncodePayload("mensaje", "Mesa modificada con exito");
+        return self::StandardResponse($response, $payload);
     }
 
     public function DeleteOne($request, $response, $args)
     {
         Mesa::delete($args['codigo']);
-        return self::StandardResponse($response, self::EncodePayload("mensaje", "Mesa borrado con exito"));
+        $payload = self::EncodePayload("mensaje", "Mesa borrada con exito");
+        return self::StandardResponse($response, $payload);
     }
-
 
 //FETCH
     public function FetchOne($request, $response, $args)
     {
-        return self::StandardResponse($response, self::EncodePayload("mesa", Mesa::fetchMesa($args['id'])));
+        $payload = self::EncodePayload("mesa", Mesa::fetchMesa($args['id']));
+        return self::StandardResponse($response, $payload);
     }
 
     public function FetchAll($request, $response, $args)
     {
-        return self::StandardResponse($response, self::EncodePayload("mesas", Mesa::fetchAllMesas()));
+        $data = AutentificadorJWT::getTokenData(AutentificadorJWT::getRequestToken());
+        $onlyActives = true;
+        if ($data->permiso == "admin") {
+            $onlyActives = false;
+        }
+        
+        $payload = self::EncodePayload("mesas", Mesa::fetchAllMesas($onlyActives));
+        return self::StandardResponse($response, $payload);
     }
-
-    public function FetchAllUnfiltered($request, $response, $args)
-    {
-        return self::StandardResponse($response, self::EncodePayload("mesas", Mesa::fetchAllMesas(false)));
-    }
-
-
-
-//PRIVATES
-    private function StandardResponse($response, $payload){
-      $response->getBody()->write($payload);
-      return $response->withHeader('Content-Type', 'application/json');
-    }
-
-    private function EncodePayload($key, $value){
-      return json_encode(array($key => $value), JSON_PRETTY_PRINT);
-    }
-
-
 }

@@ -3,9 +3,6 @@
 error_reporting(-1);
 ini_set('display_errors', 1);
 
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Factory\AppFactory;
 use Slim\Routing\RouteCollectorProxy;
 use Slim\Routing\RouteContext;
@@ -15,6 +12,7 @@ require __DIR__ . '/../vendor/autoload.php';
 require_once './db/AccesoDB.php';
 require_once './middlewares/AuthMiddleware.php';
 require_once './middlewares/ValidationMiddleware.php';
+require_once './controllers/LoggerController.php';
 require_once './controllers/UsuarioController.php';
 require_once './controllers/ProductoController.php';
 require_once './controllers/MesaController.php';
@@ -34,10 +32,15 @@ $app->addErrorMiddleware(true, true, true);
 // Add parse body
 $app->addBodyParsingMiddleware();
 
+
 // Routes
+$app->group('/login', function (RouteCollectorProxy $group) {
+      $group->post('[/]', \LoggerController::class . ':Login')
+            ->add(\ValidationMiddleware::class . ':ValidateLogin');
+  });
+
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
     $group->get('[/]', \UsuarioController::class . ':FetchAll');
-    $group->get('/db', \UsuarioController::class . ':FetchAllUnfiltered');
     $group->get('/{id}', \UsuarioController::class . ':FetchOne')
           ->add(new ValidationMiddleware('Usuario'));
     $group->get('/username/{usuario}', \UsuarioController::class . ':FetchOneByUsername')
@@ -48,12 +51,10 @@ $app->group('/usuarios', function (RouteCollectorProxy $group) {
           ->add(\ValidationMiddleware::class . ':ValidateUsuario_Put');
     $group->delete('/{id}', \UsuarioController::class . ':DeleteOne')
           ->add(new ValidationMiddleware('Usuario'));
-  })->add(new AuthMiddleware(['admin']));
+  })->add(new AuthMiddleware());
 
-
-  $app->group('/productos', function (RouteCollectorProxy $group) {
+$app->group('/productos', function (RouteCollectorProxy $group) {
     $group->get('[/]', \ProductoController::class . ':FetchAll');
-    $group->get('/db', \ProductoController::class . ':FetchAllUnfiltered');
     $group->get('/sector/{sector}', \ProductoController::class . ':FetchAllBySector');
     $group->get('/nombre/{nombre}', \ProductoController::class . ':FetchOneByNombre');
     $group->get('/{id}', \ProductoController::class . ':FetchOne')
@@ -64,18 +65,15 @@ $app->group('/usuarios', function (RouteCollectorProxy $group) {
           ->add(\ValidationMiddleware::class . ':ValidateProducto_Put');
     $group->delete('/{id}', \ProductoController::class . ':DeleteOne')
           ->add(new ValidationMiddleware('Producto'));
+  })->add(new AuthMiddleware());
 
-  });
-  
-      $app->group('/mesas', function (RouteCollectorProxy $group) {
+$app->group('/mesas', function (RouteCollectorProxy $group) {
       $group->get('[/]', \MesaController::class . ':FetchAll');
-      $group->get('/db', \MesaController::class . ':FetchAllUnfiltered');
       $group->get('/{codigo}', \MesaController::class . ':FetchOne');
       $group->post('[/]', \MesaController::class . ':CreateOne');
       $group->put('/{codigo}', \MesaController::class . ':UpdateOne');
       $group->delete('/{codigo}', \MesaController::class . ':DeleteOne');
-  });
-
+  })->add(new AuthMiddleware());
 
 /*
 $app->group('/pedidos', function (RouteCollectorProxy $group) {

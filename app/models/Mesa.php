@@ -4,7 +4,8 @@ class Mesa
 {   
     public const ACCEPTED_PARAMS = ['codigo', 'estado_mesa', 'estado'];
     public const MANDATORY_PARAMS = [];
-    public const CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    public const ESTADOS_MESAS = ['cerrada', 'con cliente esperando pedido', 'con cliente comiendo', 'con cliente pagando'];
+    private const CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
     public $id;
     public $codigo;

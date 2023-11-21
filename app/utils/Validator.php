@@ -1,9 +1,7 @@
 <?php
 
-    class Validator {
-        private const PERMISOS = ['socio', 'bartender', 'cervecero', 'cocinero', 'mozo'];
-        private const ESTADOS_MESAS = ['cerrada', 'con cliente esperando pedido', 'con cliente comiendo', 'con cliente pagando'];
-        private const SECTORES = ['barra_tragos', 'barra_choperas', 'cocina', 'candy_bar'];
+    class Validator
+    {
         private const ESTADOS = ['activo', 'inactivo'];
 
         public $errors;
@@ -86,17 +84,17 @@
         }
 
         public function ValidatePermisos($permiso){
-            $this->ValidateOptions($permiso, self::PERMISOS, 'UnvalidOption_Permiso', 'permiso');
+            $this->ValidateOptions($permiso, Usuario::PERMISOS, 'UnvalidOption_Permiso', 'permiso');
         }
 
         public function ValidateEstadosMesas($estado){
-            $this->ValidateOptions($estado, self::ESTADOS_MESAS, 'UnvalidOption_EstadoMesa', 'estado');
+            $this->ValidateOptions($estado, Mesa::ESTADOS_MESAS, 'UnvalidOption_EstadoMesa', 'estado');
         }
 
         public function ValidateSectores($sector){
-            $this->ValidateOptions($sector, self::SECTORES, 'UnvalidOption_Sector', 'sector');
+            $this->ValidateOptions($sector, Producto::SECTORES, 'UnvalidOption_Sector', 'sector');
         }
-
+        
         public function ValidateEstados($estado){
             $this->ValidateOptions($estado, self::ESTADOS, 'UnvalidOption_Estado', 'estado');
         }

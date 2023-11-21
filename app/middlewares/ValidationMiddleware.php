@@ -4,13 +4,12 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Psr7\Response;
 
-require_once './models/Validator.php';
+require_once './utils/Validator.php';
 
     class ValidationMiddleware {
     
         public $className;
         public $idField;
-
         
         public function __construct($className, $idField = 'id')
         {
@@ -26,6 +25,14 @@ require_once './models/Validator.php';
         }
 
 //USUARIOS
+        public function ValidateLogin(Request $request, RequestHandler $handler) : Response
+        {
+            $validator = new Validator();
+            $params = $request->getParsedBody();
+            $validator->ValidateMandatoryParams(Logger::MANDATORY_PARAMS, $params);
+            return self::StandardValidation($request, $handler, $validator);
+        }
+
         public function ValidateUsuario_Post(Request $request, RequestHandler $handler) : Response
         {
             $validator = new Validator();

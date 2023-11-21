@@ -1,10 +1,11 @@
 <?php
 require_once './models/Producto.php';
 require_once './interfaces/IABM.php';
+require_once './controllers/ControllerTrait.php';
 
 class ProductoController extends Producto implements IABM
 {
-
+    use ControllerTrait;
 //ABM
     public function CreateOne($request, $response, $args)
     {
@@ -16,7 +17,8 @@ class ProductoController extends Producto implements IABM
         $product->precio = $params['precio'];
         $product->create();
 
-        return self::StandardResponse($response, self::EncodePayload("mensaje", "Producto creado con exito"));
+        $payload = self::EncodePayload("mensaje", "Producto creado con exito");
+        return self::StandardResponse($response, $payload);
     }
 
     public function UpdateOne($request, $response, $args)
@@ -45,54 +47,46 @@ class ProductoController extends Producto implements IABM
         
         $product->update();
 
-        return self::StandardResponse($response, self::EncodePayload("mensaje", "Producto modificado con exito"));
+        $payload = self::EncodePayload("mensaje", "Producto modificado con exito");
+        return self::StandardResponse($response, $payload);
     }
 
     public function DeleteOne($request, $response, $args)
     {
         Producto::delete($args['id']);
-        return self::StandardResponse($response, self::EncodePayload("mensaje", "Producto borrado con exito"));
+        $payload = self::EncodePayload("mensaje", "Producto borrado con exito");
+        return self::StandardResponse($response, $payload);
     }
 
 
 //FETCH
     public function FetchOne($request, $response, $args)
     {
-        return self::StandardResponse($response, self::EncodePayload("producto", Producto::fetchProductoById($args['id'])));
+        $payload = self::EncodePayload("producto", Producto::fetchProductoById($args['id']));
+        return self::StandardResponse($response, $payload);
     }
 
     public function FetchOneByNombre($request, $response, $args)
     {
-        return self::StandardResponse($response, self::EncodePayload("producto", Producto::fetchProductoByNombre($args['nombre'])));
+        $payload = self::EncodePayload("producto", Producto::fetchProductoByNombre($args['nombre']));
+        return self::StandardResponse($response, $payload);
     }
 
     public function FetchAll($request, $response, $args)
     {
-        return self::StandardResponse($response, self::EncodePayload("productos", Producto::fetchAllProductos()));
+        $data = AutentificadorJWT::getTokenData(AutentificadorJWT::getRequestToken());
+        $onlyActives = true;
+        if ($data->permiso == "admin") {
+            $onlyActives = false;
+        }
+        
+        $payload = self::EncodePayload("productos", Producto::fetchAllProductos($onlyActives));
+        return self::StandardResponse($response, $payload);
     }
 
     public function FetchAllBySector($request, $response, $args)
     {
-
-        return self::StandardResponse($response, self::EncodePayload("productos", Producto::fetchAllProductsBySector($args['sector'])));
+        $payload = self::EncodePayload("productos", Producto::fetchAllProductsBySector($args['sector']));
+        return self::StandardResponse($response, $payload);
     }
-
-    public function FetchAllUnfiltered($request, $response, $args)
-    {
-        return self::StandardResponse($response, self::EncodePayload("productos", Producto::fetchAllProductos(false)));
-    }
-
-
-
-//PRIVATES
-    private function StandardResponse($response, $payload){
-      $response->getBody()->write($payload);
-      return $response->withHeader('Content-Type', 'application/json');
-    }
-
-    private function EncodePayload($key, $value){
-      return json_encode(array($key => $value), JSON_PRETTY_PRINT);
-    }
-
-
 }
