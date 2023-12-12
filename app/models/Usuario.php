@@ -59,6 +59,14 @@
             return $consulta->fetchObject('Usuario');
         }
 
+        public static function getPermiso($username) : string {
+            $objAccesoDato = AccesoDB::getInstance();
+            $consulta = $objAccesoDato->prepareQuery("SELECT permiso FROM usuarios WHERE usuario = :username;");
+            $consulta->bindValue(':username', $username, PDO::PARAM_STR);
+            $consulta->execute();
+            return $consulta->fetch()[0];
+        }
+
         public function update()
         {
             $objAccesoDato = AccesoDB::getInstance();

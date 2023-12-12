@@ -23,7 +23,7 @@ class AutentificadorJWT
     public static function VerificarToken($token)
     {
         if (empty($token)) {
-            throw new Exception("El token esta vacio.");
+            throw new Exception("El token esta vacío.");
         }
         try {
             $decodificado = JWT::decode(
@@ -83,7 +83,7 @@ class AutentificadorJWT
         $token = NULL;
 
         if (isset($headers['Authorization']) && !empty($headers['Authorization'])){
-            $token = explode("Bearer ", $headers['Authorization'])[1];
+            $token = explode("Bearer ", $headers['Authorization'] ?? '')[1];
         }
 
         return $token;

@@ -71,13 +71,7 @@ class MesaController extends Mesa implements IABM
 
     public function FetchAll($request, $response, $args)
     {
-        $data = AutentificadorJWT::getTokenData(AutentificadorJWT::getRequestToken());
-        $onlyActives = true;
-        if ($data->permiso == "admin") {
-            $onlyActives = false;
-        }
-        
-        $payload = self::EncodePayload("mesas", Mesa::fetchAllMesas($onlyActives));
+        $payload = self::EncodePayload("mesas", Mesa::fetchAllMesas());
         return self::StandardResponse($response, $payload);
     }
 }

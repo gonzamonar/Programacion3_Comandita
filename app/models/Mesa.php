@@ -11,14 +11,16 @@ class Mesa
     public $codigo;
     public $estado_mesa;
     public $estado;
+    public $fecha_alta;
     public $fecha_baja;
 
 //ABM
     public function create()
     {
         $objAccesoDatos = AccesoDB::getInstance();
-        $consulta = $objAccesoDatos->prepareQuery("INSERT INTO mesas (codigo) VALUES (:codigo)");
+        $consulta = $objAccesoDatos->prepareQuery("INSERT INTO mesas (codigo, fecha_alta) VALUES (:codigo, :fecha_alta)");
         $consulta->bindValue(':codigo', $this->codigo, PDO::PARAM_STR);
+        $consulta->bindValue(':fecha_alta', date_format(new DateTime(), 'Y-m-d H:i:s'));
         $consulta->execute();
         return $objAccesoDatos->getLastID();
     }
@@ -33,6 +35,33 @@ class Mesa
         $consulta->bindValue(':fecha_baja', $this->fecha_baja);
         $consulta->execute();
     }
+
+    public static function update_estado_esperando($codigo){
+        self::update_estado($codigo, 'con cliente esperando pedido');
+    }
+
+    public static function update_estado_comiendo($codigo){
+        self::update_estado($codigo, 'con cliente comiendo');
+    }
+
+    public static function update_estado_pagando($codigo){
+        self::update_estado($codigo, 'con cliente pagando');
+    }
+
+    public static function cerrar_mesa($codigo){
+        self::update_estado($codigo, 'cerrada');
+    }
+
+
+    private static function update_estado($codigo, $estado_mesa)
+    {
+        $objAccesoDato = AccesoDB::getInstance();
+        $consulta = $objAccesoDato->prepareQuery("UPDATE mesas SET estado_mesa = :estado_mesa WHERE codigo = :codigo");
+        $consulta->bindValue(':codigo', $codigo, PDO::PARAM_STR);
+        $consulta->bindValue(':estado_mesa', $estado_mesa, PDO::PARAM_STR);
+        $consulta->execute();
+    }
+
 
     public static function delete($id)
     {
@@ -53,21 +82,20 @@ class Mesa
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Mesa');
     }
 
-    public static function fetchMesa($id, $onlyActives = true)
+    public static function fetchMesa($id)
     {
-        $sql = "SELECT * FROM mesas WHERE codigo = :codigo" . ($onlyActives) ? " AND estado = 'activo';" : ";" ;
+        $sql = "SELECT * FROM mesas WHERE codigo = :codigo";
         $objAccesoDatos = AccesoDB::getInstance();
         $consulta = $objAccesoDatos->prepareQuery($sql);
         $consulta->bindValue(':codigo', $id, PDO::PARAM_STR);
         $consulta->execute();
-
-        return $consulta->fetchObject('Producto');
+        return $consulta->fetchObject('Mesa');
     }
 
 //QUERIES
     public static function idExists($id) : bool {
         $objAccesoDato = AccesoDB::getInstance();
-        $consulta = $objAccesoDato->prepareQuery("SELECT COUNT(id) FROM mesas WHERE codigo = :codigo;");
+        $consulta = $objAccesoDato->prepareQuery("SELECT COUNT(codigo) FROM mesas WHERE codigo = :codigo;");
         $consulta->bindValue(':codigo', $id, PDO::PARAM_STR);
         $consulta->execute();
         return $consulta->fetch()[0] == 0 ? false : true ;

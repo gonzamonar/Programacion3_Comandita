@@ -11,16 +11,18 @@
         public $sector_producto;
         public $precio;
         public $estado;
+        public $fecha_alta;
         public $fecha_baja;
 
     //ABM
         public function create()
         {
             $objAccesoDatos = AccesoDB::getInstance();
-            $consulta = $objAccesoDatos->prepareQuery("INSERT INTO productos (nombre_producto, sector_producto, precio) VALUES (:nombre_producto, :sector_producto, :precio)");
+            $consulta = $objAccesoDatos->prepareQuery("INSERT INTO productos (nombre_producto, sector_producto, precio, fecha_alta) VALUES (:nombre_producto, :sector_producto, :precio, :fecha_alta)");
             $consulta->bindValue(':nombre_producto', $this->nombre_producto, PDO::PARAM_STR);
             $consulta->bindValue(':sector_producto', $this->sector_producto, PDO::PARAM_STR);
             $consulta->bindValue(':precio', $this->precio, PDO::PARAM_INT);
+            $consulta->bindValue(':fecha_alta', date_format(new DateTime(), 'Y-m-d H:i:s'));
             $consulta->execute();
             return $objAccesoDatos->getLastID();
         }
@@ -79,7 +81,11 @@
 
         private static function fetchProducto($value, $col, $onlyActives = true, $paramType = PDO::PARAM_INT)
         {
-            $sql = "SELECT * FROM productos WHERE $col = :value" . (($onlyActives) ? " AND estado = 'activo';" : ";") ;
+            if ($onlyActives) {
+                $sql = "SELECT * FROM productos WHERE estado = 'activo';" ;
+            } else {
+                $sql = "SELECT * FROM productos;" ;
+            }
             $objAccesoDatos = AccesoDB::getInstance();
             $consulta = $objAccesoDatos->prepareQuery($sql);
             $consulta->bindValue(':value', $value, $paramType);
@@ -104,4 +110,29 @@
             $consulta->execute();
             return $consulta->fetch()[0] == 0 ? false : true ;
         }
+
+        public static function CalcularMonto($array_productos) : float {
+            $monto = 0;
+            foreach ($array_productos as $producto) {
+                $monto = $monto + self::GetMonto($producto['producto']) * $producto['cantidad'];
+            }
+            return $monto;
+        }
+
+        public static function GetMonto($producto) : float {
+            $objAccesoDato = AccesoDB::getInstance();
+            $consulta = $objAccesoDato->prepareQuery("SELECT precio FROM productos WHERE nombre_producto = :nombre_producto;");
+            $consulta->bindValue(':nombre_producto', $producto, PDO::PARAM_INT);
+            $consulta->execute();
+            return $consulta->fetch()[0];
+        }
+
+        public static function GetIdFromName($producto) : float {
+            $objAccesoDato = AccesoDB::getInstance();
+            $consulta = $objAccesoDato->prepareQuery("SELECT id FROM productos WHERE nombre_producto = :nombre_producto;");
+            $consulta->bindValue(':nombre_producto', $producto, PDO::PARAM_INT);
+            $consulta->execute();
+            return $consulta->fetch()[0];
+        }
+
     }

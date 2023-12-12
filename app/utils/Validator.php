@@ -42,6 +42,14 @@
             }
         }
 
+        public function ValidateFileParam($files, $key) {
+            if (!isset($files[$key])) {
+                $this->errors["UnsetFile_$key"] = "Debe incluir un parámetro de archivos '$key' obligatoriamente." ;
+            } else if ($files[$key]->getSize() == 0) {
+                $this->errors["EmptyFile_$key"] =  "Debe incluir una imagen en el parámetro de archivos '$key'." ;
+            }
+        }
+
         public function ValidateIdExists($id, $class) {
             if (!$class::idExists($id)){
                 $this->errors["IdDoesntExists"] =  "El ID ingresado no existe." ;
@@ -105,6 +113,14 @@
             }
         }
 
+        public function ValidateRangedNumber($num, $field, $min = 1, $max = 10){
+            if ($num > $max){
+                $this->errors["OutOfRangeMAX_$field"] = "El máximo permitido es $max.";
+            }
+            if ($num < $min){
+                $this->errors["OutOfRangeMIN_$field"] = "El mínimo permitido es $min.";
+            }
+        }
 
         public function IsErrorFree(){
             return empty($this->errors);

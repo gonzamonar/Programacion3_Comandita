@@ -74,13 +74,7 @@ class ProductoController extends Producto implements IABM
 
     public function FetchAll($request, $response, $args)
     {
-        $data = AutentificadorJWT::getTokenData(AutentificadorJWT::getRequestToken());
-        $onlyActives = true;
-        if ($data->permiso == "admin") {
-            $onlyActives = false;
-        }
-        
-        $payload = self::EncodePayload("productos", Producto::fetchAllProductos($onlyActives));
+        $payload = self::EncodePayload("productos", Producto::fetchAllProductos());
         return self::StandardResponse($response, $payload);
     }
 

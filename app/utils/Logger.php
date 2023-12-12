@@ -1,34 +1,48 @@
 <?php
 
-    class Logger {
-        public const MANDATORY_PARAMS = ['usuario', 'clave'];
-
-        public $username = "";
-        public $credential = "";
-        public $success = False;
-        public $message = "";
-
-        public function Login($username, $password) : bool {
-            $this->success = False;
-            $this->username = $username;
-
-            if (Usuario::usernameExists($this->username)){
-                if (Usuario::userIsActive($this->username)){
-                    if (Usuario::checkPassword($this->username, $password)){
-                        $this->success = True;
-                        $this->message = "Login exitoso.";
-                        $this->credential = "admin";
-                    } else {
-                        $this->message = "Contraseña incorrecta.";
-                    }
-                } else {
-                    $this->message = "El usuario indicado no es un usuario activo.";
-                }
-            } else {
-                $this->message = "El usuario indicado no existe.";
-            }
-
-            return $this->success;
+    class Log {
+        public $id;
+        public $fecha;
+        public $usuario;
+        public $host;
+        public $port;
+        public $path;
+        public $method;
+        public $query;
+        public $body;
+        public $status;
+        public $resultado;
+        public $detalle;
+        
+        public function insert()
+        {
+            $objAccesoDatos = AccesoDB::getInstance();
+            $consulta = $objAccesoDatos->prepareQuery("INSERT INTO logs (fecha, usuario, host, port, path, method, query, body, status, resultado, detalle)
+                                                              VALUES (:fecha, :usuario, :host, :port, :path, :method, :query, :body, :status, :resultado, :detalle)");
+            $consulta->bindValue(':fecha', $this->fecha, PDO::PARAM_STR);
+            $consulta->bindValue(':usuario', $this->usuario, PDO::PARAM_STR);
+            $consulta->bindValue(':host', $this->host, PDO::PARAM_STR);
+            $consulta->bindValue(':port', $this->port, PDO::PARAM_STR);
+            $consulta->bindValue(':path', $this->path, PDO::PARAM_STR);
+            $consulta->bindValue(':method', $this->method, PDO::PARAM_STR);
+            $consulta->bindValue(':query', $this->query, PDO::PARAM_STR);
+            $consulta->bindValue(':body', $this->body, PDO::PARAM_STR);
+            $consulta->bindValue(':status', $this->status, PDO::PARAM_STR);
+            $consulta->bindValue(':resultado', $this->resultado, PDO::PARAM_STR);
+            $consulta->bindValue(':detalle', $this->detalle, PDO::PARAM_STR);
+            $consulta->execute();
+            return $objAccesoDatos->getLastID();
         }
+
+        public static function getLogs()
+        {
+            $sql = "SELECT * FROM logs;" ;
+            $objAccesoDatos = AccesoDB::getInstance();
+            $consulta = $objAccesoDatos->prepareQuery($sql);
+            $consulta->execute();
+            return $consulta->fetchAll(PDO::FETCH_CLASS, 'Log');
+        }
+
+
     }
-?>
+

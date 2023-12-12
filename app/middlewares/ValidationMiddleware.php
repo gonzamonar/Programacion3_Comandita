@@ -29,7 +29,17 @@ require_once './utils/Validator.php';
         {
             $validator = new Validator();
             $params = $request->getParsedBody();
-            $validator->ValidateMandatoryParams(Logger::MANDATORY_PARAMS, $params);
+            $validator->ValidateMandatoryParams(Login::MANDATORY_PARAMS, $params);
+            return self::StandardValidation($request, $handler, $validator);
+        }
+
+        public function ValidateAltaFoto(Request $request, RequestHandler $handler) : Response
+        {
+            $validator = new Validator();
+            $params = $request->getParsedBody();
+            $validator->ValidateMandatoryParams(['id_pedido'], $params);
+            $validator->ValidateFileParam($request->getUploadedFiles(), Pedido::FILE_PARAM);
+    
             return self::StandardValidation($request, $handler, $validator);
         }
 
@@ -88,6 +98,7 @@ require_once './utils/Validator.php';
             return self::StandardValidation($request, $handler, $validator);
         }
 
+
         public function ValidateProducto_Put(Request $request, RequestHandler $handler) : Response
         {
             $validator = new Validator();
@@ -103,6 +114,23 @@ require_once './utils/Validator.php';
         }
 
 
+        public function ValidateAltaEncuesta(Request $request, RequestHandler $handler) : Response
+        {
+            $validator = new Validator();
+            $params = $request->getParsedBody();
+            $validator->ValidateMandatoryParams(Encuesta::MANDATORY_PARAMS, $params);
+
+            if ($validator->IsErrorFree()){
+                $validator->ValidateRangedNumber($params['puntuacion_mesa'], 'puntuacion_mesa');
+                $validator->ValidateRangedNumber($params['puntuacion_restaurante'], 'puntuacion_restaurante');
+                $validator->ValidateRangedNumber($params['puntuacion_mozo'], 'puntuacion_mozo');
+                $validator->ValidateRangedNumber($params['puntuacion_cocinero'], 'puntuacion_cocinero');
+            }
+
+            return self::StandardValidation($request, $handler, $validator);
+        }
+
+
         private function getArgs($request){
             return \Slim\Routing\RouteContext::fromRequest($request)->getRoute()->getArguments();
         }
@@ -113,10 +141,10 @@ require_once './utils/Validator.php';
                 $response = $handler->handle($request);
             } else {
                 $response = new Response();
-                $payload = json_encode(array('errors' => $validator->errors), JSON_PRETTY_PRINT);
+                $mensajes = array('mensaje'=> array('resultado'=>"ERROR", 'detalle'=>'Error de validación.'),'errors' => $validator->errors);
+                $payload = json_encode($mensajes, JSON_PRETTY_PRINT);
                 $response->getBody()->write($payload);
             }
-
             return $response->withHeader('Content-Type', 'application/json');
         }
     }

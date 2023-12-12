@@ -39,13 +39,7 @@ class UsuarioController extends Usuario implements IABM
 
     public function FetchAll($request, $response, $args)
     {
-        $data = AutentificadorJWT::getTokenData(AutentificadorJWT::getRequestToken());
-        $onlyActives = true;
-        if ($data->permiso == "admin") {
-            $onlyActives = false;
-        }
-        
-        $payload = self::EncodePayload("usuarios", Usuario::fetchAllUsers($onlyActives));
+        $payload = self::EncodePayload("usuarios", Usuario::fetchAllUsers());
         return self::StandardResponse($response, $payload);
     }
     
